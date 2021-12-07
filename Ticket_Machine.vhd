@@ -61,7 +61,7 @@ begin
 			when S1 => -- tiket 5K
 				if(M = "01") then NS <= S4; -- kembali 0
 				elsif(M = "10") then NS <= S5; -- kembali 5K
-				elsif(M = "11") then NS <= S7; -- kembali 15K
+				elsif(M = "11") then NS <= S7; -- kembali 15K --> 10 + 5
 				end if;
 			when S2 => -- tiket 10K
 				if(M = "01") then NS <= S1; -- sisa 5K

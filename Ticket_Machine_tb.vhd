@@ -13,49 +13,135 @@ architecture bench of Ticket_Machine_tb is
 		);
 	end component;
 	
-	-- type state_types is (S0, S1, S2, S3, S4, S5, S6, S7, S8);
-	-- signal PS, NS : state_types;
-	
 	signal CLK : std_logic;
 	signal M, T: std_logic_vector (1 downto 0);
 	signal C1, C2, O: std_logic_vector (1 downto 0) ;
 	constant CLK_PERIOD : time := 0.1 ns;
+	constant CLK_LIMIT : integer := 30;
+	signal i : integer := 0;
 begin
 	TM : Ticket_Machine port map (CLK, M, T, C1, C2, O);
+	
 	sync_proc : process
 	begin
 		CLK <= '0';
 		wait for CLK_PERIOD;
 		CLK <= '1';
 		wait for CLK_PERIOD;
+		if (i < CLK_LIMIT) then i <= i + 1;
+		else wait;
+		end if;
 	end process;
 	
 	comb_proc : process
 	begin
-		T <= "01"; -- tiket 5K
-		M <= "00"; -- uang 0
+		-- tiket 5K , bayar 5K--
+		T <= "01";
+		M <= "00";
 		wait for CLK_PERIOD;
-		M <= "11"; -- uang 20K
+		M <= "01";
 		wait for CLK_PERIOD * 2;
 		
-		T <= "10"; -- tiket 10K
-		M <= "01"; -- uang selain 0
+		assert ((C1 = "00") and (C2 = "00")) report "Kembalian gagal jika memilih tiket 5K dengan pembayaran 5K" severity error;
 		wait for CLK_PERIOD;
-		T <= "10"; -- tiket 10K
-		M <= "00"; -- uang  0
+		assert (O = "01") report "Tidak mengeluarkan tiket jika memilih tiket 5K dengan pembayaran 5K" severity error;
+		
+		-- tiket 5K , bayar 10K--
+		T <= "01";
+		M <= "00";
 		wait for CLK_PERIOD;
-		M <= "01"; -- uang 5K
-		wait for CLK_PERIOD;
-		M <= "10"; -- uang 10K
+		M <= "10";
 		wait for CLK_PERIOD * 2;
 		
-		T <= "11"; -- tiket 15K
-		M <= "00"; -- uang 0
+		assert ((C1 = "01") and (C2 = "00")) report "Kembalian gagal jika memilih tiket 5K dengan pembayaran 10K" severity error;
 		wait for CLK_PERIOD;
-		M <= "01"; -- uang 5K
+		assert (O = T) report "Tidak mengeluarkan tiket jika memilih tiket 5K dengan pembayaran 10K" severity error;
 		wait for CLK_PERIOD;
-		M <= "11"; -- uang 20K
-		wait for CLK_PERIOD * 2;
+		-- tiket 5K , bayar 20K--
+		T <= "01";
+		M <= "00";
+		wait for CLK_PERIOD;
+		M <= "11";
+		wait for CLK_PERIOD;
 		
+		assert ((C1 = "10") and (C2 = "01")) report "Kembalian gagal jika memilih tiket 5K dengan pembayaran 20K" severity error;
+		wait for CLK_PERIOD;
+		assert (O = T) report "Tidak mengeluarkan tiket jika memilih tiket 5K dengan pembayaran 20K" severity error;
+		wait for CLK_PERIOD;
+		-- tiket 10K , bayar 5K, 5K--
+		T <= "10";
+		M <= "00";
+		wait for CLK_PERIOD;
+		M <= "01";
+		wait for CLK_PERIOD;
+		M <= "01";
+		wait for CLK_PERIOD;
+		
+		assert ((C1 = "00") and (C2 = "00")) report "Kembalian gagal jika memilih tiket 10K dengan pembayaran 5K dan 5K" severity error;
+		wait for CLK_PERIOD;
+		assert (O = T) report "Tidak mengeluarkan tiket jika memilih tiket 10K dengan pembayaran 5K dan 5K" severity error;
+		wait for CLK_PERIOD;
+		-- tiket 10K , bayar 10K--
+		T <= "10";
+		M <= "00";
+		wait for CLK_PERIOD;
+		M <= "10";
+		wait for CLK_PERIOD;
+		
+		assert ((C1 = "00") and (C2 = "00")) report "Kembalian gagal jika memilih tiket 10K dengan pembayaran 10K" severity error;
+		wait for CLK_PERIOD;
+		assert (O = T) report "Tidak mengeluarkan tiket jika memilih tiket 10K dengan pembayaran 10K" severity error;
+		wait for CLK_PERIOD;
+		-- tiket 10K , bayar 20K--
+		T <= "10";
+		M <= "00";
+		wait for CLK_PERIOD;
+		M <= "11";
+		wait for CLK_PERIOD;
+		
+		assert ((C1 = "10") and (C2 = "00")) report "Kembalian gagal jika memilih tiket 10K dengan pembayaran 20K" severity error;
+		wait for CLK_PERIOD;
+		assert (O = T) report "Tidak mengeluarkan tiket jika memilih tiket 10K dengan pembayaran 20K" severity error;
+		wait for CLK_PERIOD;
+		-- tiket 15K, bayar 5K, 5K, 5K --
+		T <= "11";
+		M <= "00";
+		wait for CLK_PERIOD;
+		M <= "01";
+		wait for CLK_PERIOD;
+		M <= "01";
+		wait for CLK_PERIOD;
+		M <= "01";
+		wait for CLK_PERIOD;
+		
+		assert ((C1 = "00") and (C2 = "00")) report "Kembalian gagal jika memilih tiket 15K dengan pembayaran 5K, 5K, dan 5K" severity error;
+		wait for CLK_PERIOD;
+		assert (O = T) report "Tidak mengeluarkan tiket jika memilih tiket 15K dengan pembayaran 5K, 5K, dan 5K" severity error;
+		wait for CLK_PERIOD;
+		-- tiket 15K, bayar 10K, 5K --
+		T <= "11";
+		M <= "00";
+		wait for CLK_PERIOD;
+		M <= "10";
+		wait for CLK_PERIOD;
+		M <= "01";
+		wait for CLK_PERIOD;
+		
+		assert ((C1 = "00") and (C2 = "00")) report "Kembalian gagal jika memilih tiket 15K dengan pembayaran 10K dan 5K" severity error;
+		wait for CLK_PERIOD;
+		assert (O = T) report "Tidak mengeluarkan tiket jika memilih tiket 15K dengan pembayaran 10K dan 5K" severity error;
+		wait for CLK_PERIOD;
+		-- tiket 15K, bayar 20K --
+		T <= "11";
+		M <= "00";
+		wait for CLK_PERIOD;
+		M <= "11";
+		wait for CLK_PERIOD;
+		
+		assert ((C1 = "01") and (C2 = "00")) report "Kembalian gagal jika memilih tiket 15K dengan pembayaran 20K" severity error;
+		wait for CLK_PERIOD;
+		assert (O = T) report "Tidak mengeluarkan tiket jika memilih tiket 15K dengan pembayaran 20K" severity error;
+		wait for CLK_PERIOD;
+		wait;
 	end process;
 end bench;
